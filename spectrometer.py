@@ -338,7 +338,7 @@ def readRAW():
 
 # now reorder the data to be in monotonic frequency order
 	output = reorderData(RAWValues)
-	print output
+	print(output)
 
 	return (output)
 
@@ -366,6 +366,6 @@ def readCAL():
 
 # now reorder the data to be in monotonic frequency order
 	output = reorderData(CALValues)
-	print output
+	print(output)
 
 	return (output)
