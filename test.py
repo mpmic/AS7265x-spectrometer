@@ -99,15 +99,17 @@ def continuous_read_data(LEDLevel: int,
 
 
 	def animate(i):
+
+		ax = plt.gca()
 		ax.clear()
-		ax.set_ylim(0,65535)
+
 		ax.set_title("Wavelength Intensity")
 		ax.set_xlabel("Wavelength")
 		ax.set_ylabel("Amplitude (units)")
 
-		y = spect.readRAW()
+		y_cal = spect.readCAL()
 		x = ['410nm', '435nm', '460nm', '485nm', '510nm', '535nm', '560nm', '585nm', '610nm', '645nm', '680nm', '705nm', '730nm', '760nm', '810nm', '860nm', '900nm', '940nm']
-		plt.plot(x, y, label = 'Wavelength Intensity')
+		plt.plot(x, y_cal, label = 'Wavelength Intensity')
 		
 	spect.init()
 	
@@ -121,7 +123,61 @@ def continuous_read_data(LEDLevel: int,
 	# spect.setIntegrationTime(integration_time)
 
 	ami = FuncAnimation(plt.gcf(), animate, interval = refresh_time)
+	plt.show()
+
+
+def record_data(refresh_time, devs):
 	
+	
+	devices = {"uv":"AS72653", "visible": "AS72652", "infra": "AS72651" }
+	
+	spect.init()
+	
+	input("Press enter to start")
+
+	# Turn off all LEDS
+	for device in devices.values():
+		spect.shutterLED(device, False)
+
+
+	# Turn on all LEDs in devs
+	for device in devices:
+		if device in devs.keys():
+			spect.shutterLED(device, True)
+
+	with file.open(rf'data/{time.strftime("%Y%m%d-%H%M%S")}', 'a', buffering=1) as fh:
+		
+		class_name = input("Enter sample name")
+		header = """410nm, 435nm, 460nm, 485nm, 510nm, 535nm, 560nm, 585nm, 610nm, 645nm, 680nm, 705nm, 730nm, 760nm, 810nm, 860nm, 900nm, 940nm, class_name"""
+
+		for lid_stage in range(2):
+			stage = "Close" if lid_stage==0 else "Open"
+			input(f"{stage} the lid now and press enter")
+
+			# Cycle through the currents
+			for currents in range(1,4):
+				print(f"Current LED intensity level is {currents}")
+				spect.setLEDDriveCurrent(LEDLevel)
+
+				y_cal = spect.readCAL()
+				"""x = ['410nm', '435nm', '460nm', '485nm', '510nm', '535nm', 
+					'560nm', '585nm', '610nm', '645nm', '680nm', '705nm', 
+					'730nm', '760nm', '810nm', '860nm', '900nm', '940nm']"""
+
+				fh.write(','.join(y_cal))
+				fh.write(f',{class_name}\n')
+				
+
+				
+
+			
+	
+
+
+
+
+
+		
 
 # ---- main()  -----
 
@@ -129,4 +185,5 @@ def continuous_read_data(LEDLevel: int,
 # spect.init()
 # spect.hwVersion()
 # 
-ReadAllData()
+# ReadAllData()
+continuous_read_data(3, 1000)
